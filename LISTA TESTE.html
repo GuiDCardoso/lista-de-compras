@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lista de Compras</title>
+
+<style>
+:root {
+  --pear: #EEBF43;
+  --tomato: #C54F2D;
+  --crema: #F2E7CB;
+  --mint: #94B38A;
+  --text: #3a2e1f;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", sans-serif;
+  background: var(--crema);
+  display: flex;
+  justify-content: center;
+  padding: 30px;
+  color: var(--text);
+}
+
+.container {
+  width: 100%;
+  max-width: 700px;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.icon {
+  background: var(--pear);
+  width: 60px;
+  height: 60px;
+  margin: auto;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.header h1 {
+  margin: 15px 0 5px;
+}
+
+.header p {
+  color: #6b5a45;
+}
+
+/* CARD */
+.card {
+  background: var(--mint);
+  padding: 20px;
+  border-radius: 18px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+  margin-bottom: 20px;
+}
+
+/* RESUMO */
+.summary {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.box {
+  flex: 1;
+  background: rgba(255,255,255,0.25);
+  padding: 15px;
+  border-radius: 15px;
+}
+
+.box input {
+  width: 100%;
+  padding: 8px;
+  border-radius: 10px;
+  border: none;
+  margin-top: 5px;
+}
+
+.value {
+  font-size: 20px;
+  font-weight: bold;
+  margin-top: 8px;
+}
+
+.negative {
+  color: var(--tomato);
+}
+
+/* FORM */
+.form-card {
+  background: #fff;
+  padding: 20px;
+  border-radius: 18px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+  margin-bottom: 20px;
+}
+
+.form {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.form input {
+  padding: 12px;
+  border-radius: 20px;
+  border: 1px solid #ddd;
+  flex: 1;
+}
+
+.form button {
+  background: var(--pear);
+  border: none;
+  padding: 12px 20px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+/* LISTA */
+.list {
+  background: #fff;
+  padding: 20px;
+  border-radius: 18px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+}
+
+.item {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.actions button {
+  margin-left: 5px;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.delete {
+  background: var(--tomato);
+  color: white;
+}
+
+.edit {
+  background: #ccc;
+}
+
+/* EMPTY STATE */
+.empty {
+  text-align: center;
+  color: #8a7a66;
+  padding: 30px 0;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <div class="header">
+    <div class="icon">🛒</div>
+    <h1>Lista de Compras</h1>
+    <p>Organize seus itens e controle seu orçamento com facilidade.</p>
+  </div>
+
+  <!-- RESUMO -->
+  <div class="card">
+    <h3>Resumo Financeiro</h3>
+    <div class="summary">
+
+      <div class="box">
+        <small>ORÇAMENTO TOTAL</small>
+        <input type="number" id="budget" placeholder="R$ 0,00">
+      </div>
+
+      <div class="box">
+        <small>SOMA DOS ITENS</small>
+        <div class="value" id="total">R$ 0,00</div>
+      </div>
+
+      <div class="box">
+        <small>VALOR RESTANTE</small>
+        <div class="value" id="remaining">R$ 0,00</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- FORM -->
+  <div class="form-card">
+    <h3>Adicionar Item</h3>
+    <div class="form">
+      <input type="text" id="name" placeholder="Nome do item...">
+      <input type="number" id="price" placeholder="R$ 0,00">
+      <button onclick="addItem()">+ Adicionar</button>
+    </div>
+  </div>
+
+  <!-- LISTA -->
+  <div class="list" id="list">
+    <div class="empty" id="empty">
+      <p><strong>Sua lista está vazia.</strong></p>
+      <p>Adicione itens usando o formulário acima.</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let items = [];
+
+function format(v) {
+  return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+function updateUI() {
+  const list = document.getElementById("list");
+  const empty = document.getElementById("empty");
+
+  list.innerHTML = "";
+  
+  let total = 0;
+
+  if (items.length === 0) {
+    list.appendChild(empty);
+  }
+
+  items.forEach((item, i) => {
+    total += item.price;
+
+    const div = document.createElement("div");
+    div.className = "item";
+
+    div.innerHTML = `
+      <span>${item.name} - ${format(item.price)}</span>
+      <div class="actions">
+        <button class="edit" onclick="editItem(${i})">Editar</button>
+        <button class="delete" onclick="deleteItem(${i})">Apagar</button>
+      </div>
+    `;
+
+    list.appendChild(div);
+  });
+
+  document.getElementById("total").innerText = format(total);
+
+  const budget = parseFloat(document.getElementById("budget").value) || 0;
+  const remaining = budget - total;
+
+  const remainingEl = document.getElementById("remaining");
+  remainingEl.innerText = format(remaining);
+
+  remainingEl.classList.toggle("negative", remaining < 0);
+}
+
+function addItem() {
+  const name = document.getElementById("name").value;
+  const price = parseFloat(document.getElementById("price").value);
+
+  if (!name || isNaN(price)) return alert("Preencha corretamente!");
+
+  items.push({ name, price });
+
+  document.getElementById("name").value = "";
+  document.getElementById("price").value = "";
+
+  updateUI();
+}
+
+function deleteItem(i) {
+  items.splice(i, 1);
+  updateUI();
+}
+
+function editItem(i) {
+  const name = prompt("Nome:", items[i].name);
+  const price = parseFloat(prompt("Valor:", items[i].price));
+
+  if (name && !isNaN(price)) {
+    items[i] = { name, price };
+    updateUI();
+  }
+}
+
+document.getElementById("budget").addEventListener("input", updateUI);
+</script>
+
+</body>
+</html>
